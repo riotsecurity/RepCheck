@@ -44,7 +44,7 @@ def print_help():
 	print(banner)
 	print(tool_desc)
 	print('''
-usage: repcheck.py [-h] [-i ioc] [-I file]
+usage: repcheck.py [-h] [-i ioc] [-I file] [-u] [-b]
 
 Open this python file and define the API keys in the CONFIG section!
 
@@ -52,6 +52,8 @@ options:
   -h, --help  show this help message and exit
   -i ioc      Scan for a single IP, URL, host or domain
   -I file     Provide a file with multiple IPs, URLs, hosts or domains
+  -u          Printing only "unclean" results for better clarity
+  -b          Remove the banner output. Useful for use within scripts.
 ''')
 
 parser = argparse.ArgumentParser(prog="repcheck.py", add_help=False)
@@ -61,6 +63,8 @@ parser = argparse.ArgumentParser(prog="repcheck.py", add_help=False)
 parser.add_argument("-i", metavar="ioc")
 parser.add_argument("-I", metavar="file")
 parser.add_argument("-h", "--help", action="store_true")
+parser.add_argument("-u", action="store_true")
+parser.add_argument("-b", action="store_true")
 args = parser.parse_args()
 
 if args.help == True:
@@ -75,6 +79,14 @@ if not args.i and not args.I:
 if not vt_api and not otx_api:
 		print("Provide at least one API key. Open this file and set the variables at the top of the file.")
 		sys.exit(1)
+if args.u == True:
+	unclean_only = True
+else:
+	unclean_only = False
+if args.b == True:
+	no_banner = True
+else:
+	no_banner = False
 
 
 def get_type(entry):
@@ -199,6 +211,8 @@ def print_result(entry, entry_type, harmless, malicious, suspicious, undetected,
 	vt_result = "unknown"
 	otx_result = "unknown"
 
+	unclean = False
+
 	green = "\033[92m"
 	yellow = "\033[93m"
 	red = "\033[91m"
@@ -212,8 +226,10 @@ def print_result(entry, entry_type, harmless, malicious, suspicious, undetected,
 		int(undetected)
 		if suspicious > 0:
 			vt_result = "%ssuspicious%s" %(yellow, reset_color)
+			unclean = True
 		if malicious > 1:
 			vt_result = "%smalicious%s" %(red, reset_color)
+			unclean = True
 		if suspicious == 0 and malicious == 0 and harmless > 0:
 			vt_result = "%sclean%s" %(green, reset_color)
 		if suspicious == 0 and malicious == 0 and harmless == 0 and undetected > 0:
@@ -224,12 +240,15 @@ def print_result(entry, entry_type, harmless, malicious, suspicious, undetected,
 			otx_result = "%sclean%s" %(green, reset_color)
 		else:
 			otx_result = "%ssuspicious%s" %(yellow, reset_color)
+			unclean = True
 
 
 	if entry_type == "unknown":
 			vt_result = "unknown"
 			otx_result = "unknown"
-	print("%s\t%s\tVirusTotal: %s\tAlienVault OTX: %s (%s pulses)" %(entry, entry_type, vt_result, otx_result, pulses))
+
+	if (unclean_only == False) or ((unclean_only == True) and (unclean == True)):
+		print("%s\t%s\tVirusTotal: %s\tAlienVault OTX: %s (%s pulses)" %(entry, entry_type, vt_result, otx_result, pulses))
 
 def check_item(item):
 	harmless = None
@@ -265,10 +284,12 @@ if args.I:
 		entry_type = get_type(line)
 		to_check.append([line.strip(), entry_type])
 
+if not no_banner:
+	print(banner)
+	print(tool_desc)
+	print("\n\n")
+
 # Run through the array and check against VT and OTX
-print(banner)
-print(tool_desc)
-print("\n\n")
 if vt_api:
 	print("Checking against VirusTotal")
 if otx_api:

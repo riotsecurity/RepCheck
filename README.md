@@ -34,6 +34,8 @@ You have the following options for running the program:
   -h, --help
   -i ioc      Scan for a single IP, URL, host or domain
   -I file     Provide a file with multiple IPs, URLs, hosts or domains
+  -u          Printing only "unclean" results for better clarity
+  -b          Remove the banner output. Useful for use within scripts.
 ```
 
 The following example shows the output of the program when loading a file with several entries:
