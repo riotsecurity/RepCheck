@@ -3,8 +3,9 @@
 ### CONFIG ####################################################################
 # Provide your API keys (as strings) for VirusTotal and AlienVault OTX
 # e.g. vt_api = "1234567890"
-vt_api = None
-otx_api = None
+vt_api = ""
+otx_api = ""
+abuseip_api = ""
 ###############################################################################
 
 ### INFO ######################################################################
@@ -207,9 +208,38 @@ def get_otx(entry, entry_type):
 			pass
 	return pulses
 
-def print_result(entry, entry_type, harmless, malicious, suspicious, undetected, pulses):
+def get_abuseipdb(entry, entry_type):
+	# Get the response from AlienVault OTX in regards to the amount of pulses
+	reports = -1
+	unique_users = -1
+	abuse_confidence_score = -1
+	if entry_type == "ip":
+		ip = urllib.parse.quote_plus(entry)
+		headers = {'Key': abuseip_api, 'Accept' : 'application/json'}
+		params = {"ipAddress" : ip}
+		url = "https://api.abuseipdb.com/api/v2/check"
+		response = requests.get(url, headers=headers, params=params)
+		print(response.status_code)
+		print(response.text)
+		if response.status_code == 200:
+			try:
+				response_json = response.json()
+				reports = response_json["data"]["totalReports"]
+				unique_users = response_json["data"]["numDistinctUsers"]
+				abuse_confidence_score = response_json["data"]["abuseConfidenceScore"]
+			except:
+				print("Error while parsing the AbuseIPDB result for %s" %entry)
+				pass
+		
+	else:
+		pass
+		#print("AbuseIPDB only supports IPs")
+	return reports, unique_users, abuse_confidence_score
+
+def print_result(entry, entry_type, harmless, malicious, suspicious, undetected, pulses, reports, unique_users, abuse_confidence_score):
 	vt_result = "unknown"
 	otx_result = "unknown"
+	abuseip_result = "unknown"
 
 	unclean = False
 
@@ -239,16 +269,21 @@ def print_result(entry, entry_type, harmless, malicious, suspicious, undetected,
 		if pulses == 0:
 			otx_result = "%sclean%s" %(green, reset_color)
 		else:
-			otx_result = "%ssuspicious%s" %(yellow, reset_color)
+			otx_result = "%ssuspicious%s " %(yellow, reset_color)
 			unclean = True
-
+	if abuse_confidence_score >= 20:
+		abuseip_result = "%ssuspicious%s (%s reports by %s unique users, %s%% confidence)" %(yellow, reset_color, reports, unique_users, abuse_confidence_score)
+	elif abuse_confidence_score >= 70:
+		abuseip_result = "%smalicious%s (%s reports by %s unique users, %s%% confidence)" %(red, reset_color, reports, unique_users, abuse_confidence_score)
+	elif abuse_confidence_score != -1:
+		abuseip_result = "%sclean%s (%s reports by %s unique users, %s%% confidence)" %(green, reset_color, reports, unique_users, abuse_confidence_score)
 
 	if entry_type == "unknown":
 			vt_result = "unknown"
 			otx_result = "unknown"
 
 	if (unclean_only == False) or ((unclean_only == True) and (unclean == True)):
-		print("%s\t%s\tVirusTotal: %s\tAlienVault OTX: %s (%s pulses)" %(entry, entry_type, vt_result, otx_result, pulses))
+		print("%s\t%s\tVirusTotal: %s\tAlienVault OTX: %s (%s pulses)\tAbuseIPDB: %s" %(entry, entry_type, vt_result, otx_result, pulses, abuseip_result))
 
 def check_item(item):
 	harmless = None
@@ -258,11 +293,16 @@ def check_item(item):
 	pulses = None
 	entry = str(item[0])
 	entry_type = str(item[1])
+	reports = 0
+	unique_users = 0
+	abuse_confidence_score = 0
 	if vt_api:
 		harmless, malicious, suspicious, undetected = get_vt(entry, entry_type)
 	if otx_api:
 		pulses = get_otx(entry, entry_type)
-	print_result(entry, entry_type, harmless, malicious, suspicious, undetected, pulses)
+	if abuseip_api:
+		reports, unique_users, abuse_confidence_score = get_abuseipdb(entry, entry_type)
+	print_result(entry, entry_type, harmless, malicious, suspicious, undetected, pulses, reports, unique_users, abuse_confidence_score)
 
 
 #
@@ -294,6 +334,8 @@ if vt_api:
 	print("Checking against VirusTotal")
 if otx_api:
 	print("Checking against AlienVault OTX")
+if abuseip_api:
+	print("Checking agains AbuseIPDB")
 print("\n")
 for item in to_check:
 	check_item(item)
