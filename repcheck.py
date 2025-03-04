@@ -219,8 +219,8 @@ def get_abuseipdb(entry, entry_type):
 		params = {"ipAddress" : ip}
 		url = "https://api.abuseipdb.com/api/v2/check"
 		response = requests.get(url, headers=headers, params=params)
-		print(response.status_code)
-		print(response.text)
+		#print(response.status_code)
+		#print(response.text)
 		if response.status_code == 200:
 			try:
 				response_json = response.json()
