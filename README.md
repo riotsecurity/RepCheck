@@ -1,5 +1,5 @@
 # RepCheck - a reputation checker
-This tool is a quick and dirty solution used to quickly perform fast triage for specific targets (IPs, URLs, hosts or domains). The APIs of VirusTotal and AlienVault OTX are used for this purpose.  
+This tool is a quick and dirty solution used to quickly perform fast triage for specific targets (IPs, URLs, hosts or domains). The APIs of VirusTotal, AlienVault OTX and AbuseIPDB are used for this purpose.  
 The results only provide an initial assessment and not a detailed analysis. However, this can be particularly helpful when there are many objects to be examined in order to obtain a first quick evaluation.
 
 Note:
@@ -7,6 +7,7 @@ Note:
   carried out. No new ones are performed!
 - The results of AlienVault OTX only show whether there are already pulses  
   for the object to be examined. No verdict is queried.
+- AbuseIPDB can only be used for checking IP addresses.
 
 ## Requirements
 - python3
@@ -26,8 +27,9 @@ First of all you need to configure your API keys:
   ```python
   vt_api = "abcdef1234567890"
   otx_api = "1234567890abcdef"
+  abuseip_api = "oiuzt567890123"
   ```
-  ![repcheck_keys](https://github.com/riotsecurity/RepCheck/assets/61002269/1ad93d67-016b-48ad-8de9-be6fc6fc38a6)
+  ![repcheck_keys](/images/config.png)
 
 You have the following options for running the program:
 ```
@@ -39,7 +41,7 @@ You have the following options for running the program:
 ```
 
 The following example shows the output of the program when loading a file with several entries:
-![repcheck_output](https://github.com/riotsecurity/RepCheck/assets/61002269/ab54c2fc-dc12-4135-a9f6-9cbaaaa79178)
+![repcheck_output](/images/output.png)
 
 
 ## Author and License
