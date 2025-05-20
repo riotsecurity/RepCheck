@@ -11,25 +11,36 @@ Note:
 
 ## Requirements
 - python3
-- python requests  
+- python requests
   (on Ubuntu use `sudo apt install python3-requests-futures` for installation)
+- python-dotenv (install with `pip install python-dotenv`)
 - API key for VirusTotal (free)
 - API key for AlienVault OTX (free)
+- API key for AbuseIPDB (free, optional)
 
 ## Usage
 First of all you need to configure your API keys:
-- Open the python file with your preferred editor, e.g.
-  ```bash
-  vim repcheck.py
-  ```
-- Search for the "CONFIG" section at the top
-- Edit the variables to contain your API keys, e.g.
-  ```python
-  vt_api = "abcdef1234567890"
-  otx_api = "1234567890abcdef"
-  abuseip_api = "oiuzt567890123"
-  ```
-  ![repcheck_keys](/images/config.png)
+1. Create a `.env` file in the same directory as the script:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit the `.env` file with your API keys:
+   ```bash
+   vim .env
+   ```
+
+3. Add your API keys to the file:
+   ```
+   # VirusTotal API Key
+   VT_API=abcdef1234567890
+
+   # AlienVault OTX API Key
+   OTX_API=1234567890abcdef
+
+   # AbuseIPDB API Key
+   ABUSEIP_API=oiuzt567890123
+   ```
 
 You have the following options for running the program:
 ```

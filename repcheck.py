@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
 
-### CONFIG ####################################################################
-# Provide your API keys (as strings) for VirusTotal and AlienVault OTX
-# e.g. vt_api = "1234567890"
-vt_api = None
-otx_api = None
-abuseip_api = None
-###############################################################################
-
 ### INFO ######################################################################
 # Author: Timo Sablowski
 # Contact: https://www.linkedin.com/in/timo-sablowski
-# License: GNU GPLv3 
+# License: GNU GPLv3
 ###############################################################################
 
 import argparse
@@ -21,6 +13,18 @@ import requests
 import json
 import urllib.parse
 import base64
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent / '.env'
+load_dotenv(dotenv_path=env_path)
+
+# Get API keys from environment variables
+vt_api = os.getenv('VT_API')
+otx_api = os.getenv('OTX_API')
+abuseip_api = os.getenv('ABUSEIP_API')
 
 banner = '''
 	██████╗ ███████╗██████╗  ██████╗██╗  ██╗███████╗ ██████╗██╗  ██╗
@@ -40,6 +44,7 @@ Note:
 - The results of AlienVault OTX only show whether there are already pulses
   for the object to be examined. No verdict is queried.
 - AbuseIPDB can only be used for checking IP addresses.
+- API keys should be set in the .env file in the same directory as this script.
 '''
 
 def print_help():
@@ -48,7 +53,7 @@ def print_help():
 	print('''
 usage: repcheck.py [-h] [-i ioc] [-I file] [-u] [-b]
 
-Open this python file and define the API keys in the CONFIG section!
+Create a .env file and define your API keys there (see .env.example)!
 
 options:
   -h, --help  show this help message and exit
@@ -75,8 +80,8 @@ if args.i and args.I:
 if not args.i and not args.I:
 		print("Please provide one argument. Type -h for help.")
 		sys.exit(1)
-if not vt_api and not otx_api:
-		print("Provide at least one API key. Open this file and set the variables at the top of the file.")
+if not vt_api and not otx_api and not abuseip_api:
+		print("Provide at least one API key in the .env file. See the .env file for examples.")
 		sys.exit(1)
 if args.u == True:
 	unclean_only = True
